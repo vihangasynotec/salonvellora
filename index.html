@@ -275,6 +275,58 @@
                 <p>Verified Bride • 5.0 Rating</p>
               </div>
             </div>
+
+            <!-- Luxury Royal Audio Player Experience at Bottom of Visual -->
+            <div class="hero-audio-card" id="heroAudioCard" role="region" aria-label="Salon Vellora Welcome Audio Experience">
+              <audio id="heroWelcomeAudio" preload="auto">
+                <source src="assets/mp3/voice.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+
+              <div class="audio-card-inner">
+                <!-- Rotating Vinyl Disc / Brand Seal with Play Button -->
+                <div class="audio-disc-wrapper" id="audioDiscWrapper" title="Play / Pause Voice Greeting">
+                  <div class="audio-disc-ring"></div>
+                  <img src="assets/logocircel.jpg" alt="Salon Vellora Vinyl Emblem" class="audio-disc-img" onerror="this.src='assets/logocircel.jpg'">
+                  <button type="button" class="audio-disc-btn" id="btnAudioPlayPause" aria-label="Play welcome voice greeting">
+                    <i class="fas fa-play" id="audioPlayIcon"></i>
+                  </button>
+                </div>
+
+                <!-- Track Info & Equalizer Visualizer -->
+                <div class="audio-track-info">
+                  <div class="audio-header-row">
+                    <div class="audio-meta">
+                      <span class="audio-kicker"><i class="fas fa-sparkles"></i> Royal Welcome Voice</span>
+                      <h4 class="audio-title">Salon Vellora Audio Greeting</h4>
+                    </div>
+
+                    <!-- Animated Soundwave Equalizer -->
+                    <div class="soundwave-bars" id="soundwaveVisualizer" aria-hidden="true">
+                      <span class="bar bar-1"></span>
+                      <span class="bar bar-2"></span>
+                      <span class="bar bar-3"></span>
+                      <span class="bar bar-4"></span>
+                      <span class="bar bar-5"></span>
+                      <span class="bar bar-6"></span>
+                    </div>
+                  </div>
+
+                  <!-- Audio Scrubber & Controls -->
+                  <div class="audio-progress-row">
+                    <span class="audio-time" id="audioCurrentTime">0:00</span>
+                    <div class="audio-scrub-bar" id="audioScrubBar" role="slider" aria-label="Audio progress track" tabindex="0">
+                      <div class="audio-scrub-fill" id="audioScrubFill"></div>
+                      <div class="audio-scrub-thumb" id="audioScrubThumb"></div>
+                    </div>
+                    <span class="audio-time" id="audioDuration">0:00</span>
+                    <button type="button" class="audio-mute-btn" id="btnAudioMute" aria-label="Mute or Unmute audio" title="Mute / Unmute">
+                      <i class="fas fa-volume-up" id="audioVolumeIcon"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1765,5 +1817,6 @@
   <script src="js/gallery.js"></script>
   <script src="js/testimonials.js"></script>
   <script src="js/hero-canvas.js"></script>
+  <script src="js/audio-player.js"></script>
 </body>
 </html>

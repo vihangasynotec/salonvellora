@@ -813,33 +813,308 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
-.hero-tag-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(238, 125, 156, 0.25);
-  backdrop-filter: blur(8px);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-charcoal);
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
-  box-shadow: 0 4px 14px rgba(238, 125, 156, 0.08);
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
+/* --- LUXURY HERO AUDIO PLAYER WIDGET --- */
+.hero-audio-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(238, 125, 156, 0.35);
+  border-radius: 20px;
+  padding: 12px 18px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 30px rgba(226, 91, 129, 0.14), 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all var(--transition-smooth);
+  max-width: 530px;
+  overflow: hidden;
 }
 
-.hero-tag-item:hover {
-  transform: translateY(-2px);
+/* Positioned at bottom of Hero Luxury Visual Section */
+.hero-visual .hero-audio-card {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 20px);
+  max-width: 440px;
+  margin-bottom: 0;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 16px 45px rgba(226, 91, 129, 0.26), 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1.5px solid rgba(238, 125, 156, 0.45);
+}
+
+.hero-visual .hero-audio-card:hover {
+  transform: translateX(-50%) translateY(-3px);
+  box-shadow: 0 20px 50px rgba(226, 91, 129, 0.32), 0 0 24px rgba(240, 220, 155, 0.25);
   border-color: var(--rose-400);
 }
 
-.hero-tag-item i {
-  color: var(--rose-500);
-  font-size: 0.8rem;
+.hero-audio-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--rose-400), var(--gold-400), transparent);
+}
+
+.hero-audio-card.is-active {
+  border-color: rgba(226, 91, 129, 0.55);
+  box-shadow: 0 12px 35px rgba(226, 91, 129, 0.22), 0 0 20px rgba(240, 220, 155, 0.2);
+}
+
+.audio-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Vinyl Disc & Master Play Button */
+.audio-disc-wrapper {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.audio-disc-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--radius-full);
+  background: conic-gradient(from 0deg, var(--rose-400), var(--gold-400), var(--rose-400));
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+}
+
+.audio-disc-wrapper.playing .audio-disc-ring {
+  opacity: 1;
+  animation: pulseDiscRing 2.4s ease-in-out infinite alternate;
+}
+
+.audio-disc-img {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.audio-disc-wrapper.playing .audio-disc-img {
+  animation: spinVinyl 6s linear infinite;
+}
+
+.audio-disc-btn {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--rose-600);
+  border: 1px solid var(--rose-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 14px rgba(226, 91, 129, 0.3);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.audio-disc-btn:hover {
+  background: var(--rose-500);
+  color: #FFFFFF;
+  transform: scale(1.08);
+}
+
+.audio-disc-btn i.fa-play {
+  margin-left: 2px;
+}
+
+/* Track Info & Visualizer */
+.audio-track-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.audio-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.audio-meta {
+  min-width: 0;
+}
+
+.audio-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rose-600);
+  margin-bottom: 2px;
+}
+
+.audio-kicker i {
+  color: var(--gold-500);
+}
+
+.audio-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+/* Soundwave Equalizer Visualizer */
+.soundwave-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding: 0 4px;
+}
+
+.soundwave-bars .bar {
+  width: 3px;
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--rose-500), var(--gold-500));
+  transition: height 0.25s ease;
+}
+
+.soundwave-bars.playing .bar {
+  animation: soundwaveDance 1.1s ease-in-out infinite alternate;
+}
+
+.soundwave-bars.playing .bar-1 { animation-delay: -0.15s; }
+.soundwave-bars.playing .bar-2 { animation-delay: -0.45s; }
+.soundwave-bars.playing .bar-3 { animation-delay: -0.85s; }
+.soundwave-bars.playing .bar-4 { animation-delay: -0.3s; }
+.soundwave-bars.playing .bar-5 { animation-delay: -0.6s; }
+.soundwave-bars.playing .bar-6 { animation-delay: -0.2s; }
+
+@keyframes soundwaveDance {
+  0% { height: 4px; }
+  50% { height: 16px; }
+  100% { height: 7px; }
+}
+
+@keyframes spinVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseDiscRing {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(1.08); opacity: 0.85; }
+}
+
+/* Progress Scrub Bar & Timing */
+.audio-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio-time {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+}
+
+.audio-scrub-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(238, 125, 156, 0.2);
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: height 0.2s ease;
+}
+
+.audio-scrub-bar:hover {
+  height: 8px;
+}
+
+.audio-scrub-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--rose-500), var(--gold-500));
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.audio-scrub-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: #FFFFFF;
+  border: 2px solid var(--rose-500);
+  box-shadow: 0 2px 6px rgba(226, 91, 129, 0.4);
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+.audio-scrub-bar:hover .audio-scrub-thumb {
+  transform: translate(-50%, -50%) scale(1.25);
+}
+
+.audio-mute-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audio-mute-btn:hover {
+  color: var(--rose-600);
+}
+
+.audio-mute-btn.muted {
+  color: var(--rose-600);
 }
 
 .hero-cta-group {
@@ -1015,8 +1290,8 @@ button {
 }
 
 .badge-bottom-right {
-  bottom: 30px;
-  right: -35px;
+  bottom: 85px;
+  right: -25px;
 }
 
 .badge-icon-box {
@@ -4425,6 +4700,47 @@ textarea.form-control {
 
   .hero-feature-tags {
     gap: 6px;
+  }
+
+  /* Mobile Audio Card */
+  .hero-audio-card {
+    padding: 10px 14px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .hero-visual .hero-audio-card {
+    position: relative;
+    bottom: 0;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 20px;
+    margin-bottom: 0;
+  }
+
+  .audio-card-inner {
+    gap: 12px;
+  }
+
+  .audio-disc-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .audio-disc-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+  }
+
+  .audio-title {
+    font-size: 0.84rem;
+  }
+
+  .audio-kicker {
+    font-size: 0.65rem;
   }
 
   .hero-tag-item {
