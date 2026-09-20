@@ -92,32 +92,52 @@ function initBookingSystem() {
 
   // Online Reservation Submission Handler
   if (bookingForm) {
-    bookingForm.addEventListener('submit', (e) => {
+    bookingForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       if (!validateBookingForm()) {
+        if (window.showToast) {
+          showToast('Please fill in all required fields highlighted in red.', 'fa-exclamation-circle');
+        }
         return;
+      }
+
+      const submitBtn = bookingForm.querySelector('.btn-submit-booking');
+      const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Confirming & Sending Email...';
       }
 
       const bookingPayload = getBookingFormData();
 
-      // Structure designed for easy Laravel API consumption:
-      // fetch('/api/v1/appointments', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      //   body: JSON.stringify(bookingPayload)
-      // });
+      let emailSent = false;
+      try {
+        await sendReservationEmail(bookingPayload);
+        emailSent = true;
+      } catch (err) {
+        console.warn('Reservation email transmission note:', err);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnContent;
+        }
+      }
 
       // Save locally for frontend session demonstration
       saveAppointmentLocally(bookingPayload);
 
       // Display the luxury animated confirmation voucher
-      showConfirmationReceipt(bookingPayload);
+      showConfirmationReceipt(bookingPayload, emailSent);
 
       // Reset form
       bookingForm.reset();
+      serviceSelect.innerHTML = '<option value="">-- Choose Category First --</option>';
+      serviceSelect.disabled = true;
       timeSlotButtons.forEach(b => b.classList.remove('active'));
       selectedTimeSlot = '';
+      initDateConstraints();
     });
   }
 
@@ -150,7 +170,7 @@ function initBookingSystem() {
         `📍 *Location:* Galwatawaththa Junction, Pinnaduwa, Galle\n` +
         `Please confirm availability. Thank you!`;
 
-      const whatsappUrl = `https://wa.me/94764618020?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/94740844739?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     });
   }
@@ -180,6 +200,8 @@ function validateBookingForm() {
 
   const nameInput = document.getElementById('bookingName');
   const phoneInput = document.getElementById('bookingPhone');
+  const emailInput = document.getElementById('bookingEmail');
+  const categoryInput = document.getElementById('bookingCategory');
   const serviceInput = document.getElementById('bookingService');
   const dateInput = document.getElementById('bookingDate');
   const timeSlotError = document.getElementById('timeSlotError');
@@ -192,7 +214,7 @@ function validateBookingForm() {
     nameInput.classList.remove('is-invalid');
   }
 
-  // Phone validation (Sri Lankan or International)
+  // Phone validation (Sri Lankan or International format)
   const phoneVal = phoneInput.value.trim().replace(/\s+/g, '');
   const phoneRegex = /^(\+94|0)?7[0-9]{8}$/;
   if (!phoneVal || !phoneRegex.test(phoneVal)) {
@@ -200,6 +222,27 @@ function validateBookingForm() {
     isValid = false;
   } else {
     phoneInput.classList.remove('is-invalid');
+  }
+
+  // Email validation (optional, but if provided, must be valid)
+  if (emailInput && emailInput.value.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput.value.trim())) {
+      emailInput.classList.add('is-invalid');
+      isValid = false;
+    } else {
+      emailInput.classList.remove('is-invalid');
+    }
+  } else if (emailInput) {
+    emailInput.classList.remove('is-invalid');
+  }
+
+  // Category selection
+  if (categoryInput && !categoryInput.value) {
+    categoryInput.classList.add('is-invalid');
+    isValid = false;
+  } else if (categoryInput) {
+    categoryInput.classList.remove('is-invalid');
   }
 
   // Service selection
@@ -230,16 +273,21 @@ function validateBookingForm() {
 }
 
 /* --------------------------------------------------------------------------
-   EXTRACT FORM DATA (Laravel Ready Payload)
+   EXTRACT FORM DATA
    -------------------------------------------------------------------------- */
 function getBookingFormData() {
   const refNumber = 'VEL-' + Math.floor(100000 + Math.random() * 900000);
+  const categorySelect = document.getElementById('bookingCategory');
+  const categoryName = (categorySelect && categorySelect.selectedIndex > 0)
+    ? categorySelect.options[categorySelect.selectedIndex].text
+    : (categorySelect ? categorySelect.value : '');
+
   return {
     reference: refNumber,
     client_name: document.getElementById('bookingName').value.trim(),
     client_phone: document.getElementById('bookingPhone').value.trim(),
     client_email: document.getElementById('bookingEmail').value.trim(),
-    category: document.getElementById('bookingCategory').value,
+    category: categoryName,
     service_name: document.getElementById('bookingService').value,
     appointment_date: document.getElementById('bookingDate').value,
     appointment_time: selectedTimeSlot,
@@ -247,6 +295,48 @@ function getBookingFormData() {
     notes: document.getElementById('bookingNotes').value.trim(),
     created_at: new Date().toISOString()
   };
+}
+
+/* --------------------------------------------------------------------------
+   DISPATCH RESERVATION EMAIL TO SALON VELLORA RECEPTION
+   Endpoint: FormSubmit.co AJAX API -> salonvellora26@gmail.com
+   -------------------------------------------------------------------------- */
+async function sendReservationEmail(data) {
+  const payload = {
+    _subject: `🌸 New Salon Vellora Reservation: [${data.reference}] - ${data.client_name}`,
+    _template: 'table',
+    _captcha: 'false',
+    'Booking Reference': data.reference,
+    'Client Name': data.client_name,
+    'Phone Number': data.client_phone,
+    'Client Email': data.client_email || 'Not provided',
+    'Category': data.category,
+    'Treatment / Service': data.service_name,
+    'Preferred Date': data.appointment_date,
+    'Preferred Time Slot': data.appointment_time,
+    'Stylist Preference': data.stylist_preference,
+    'Special Requests / Notes': data.notes || 'None',
+    'Reservation Created At': new Date().toLocaleString()
+  };
+
+  if (data.client_email) {
+    payload._replyto = data.client_email;
+  }
+
+  const response = await fetch('https://formsubmit.co/ajax/salonvellora26@gmail.com', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Email dispatch failed with HTTP status: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 /* --------------------------------------------------------------------------
@@ -265,7 +355,7 @@ function saveAppointmentLocally(appointment) {
 /* --------------------------------------------------------------------------
    CONFIRMATION RECEIPT MODAL
    -------------------------------------------------------------------------- */
-function showConfirmationReceipt(data) {
+function showConfirmationReceipt(data, emailSent = true) {
   const modalBackdrop = document.getElementById('receiptModalBackdrop');
   if (!modalBackdrop) return;
 
@@ -275,8 +365,40 @@ function showConfirmationReceipt(data) {
   document.getElementById('receiptDateTime').textContent = `${data.appointment_date} at ${data.appointment_time}`;
   document.getElementById('receiptStylist').textContent = data.stylist_preference;
 
+  const emailStatusEl = document.getElementById('receiptEmailStatus');
+  if (emailStatusEl) {
+    if (emailSent) {
+      emailStatusEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2e7d32;"></i> Dispatched to salonvellora26@gmail.com';
+      emailStatusEl.style.color = '#2e7d32';
+    } else {
+      emailStatusEl.innerHTML = '<i class="fas fa-info-circle" style="color: #d97706;"></i> Recorded locally & awaiting salon review';
+      emailStatusEl.style.color = '#d97706';
+    }
+  }
+
+  // Setup WhatsApp share button in receipt
+  const receiptWhatsAppBtn = document.getElementById('btnReceiptWhatsApp');
+  if (receiptWhatsAppBtn) {
+    receiptWhatsAppBtn.onclick = () => {
+      const msg = `🌸 *Confirmed Reservation Voucher - Salon Vellora* 🌸\n\n` +
+        `🔖 *Reference:* ${data.reference}\n` +
+        `👤 *Client Name:* ${data.client_name}\n` +
+        `📞 *Contact:* ${data.client_phone}\n` +
+        `✨ *Service:* ${data.service_name}\n` +
+        `📅 *Date & Time:* ${data.appointment_date} at ${data.appointment_time}\n` +
+        `💇‍♀️ *Stylist:* ${data.stylist_preference}\n` +
+        (data.notes ? `📝 *Notes:* ${data.notes}\n` : '') +
+        `\nI have confirmed this reservation online at Salon Vellora.`;
+      window.open(`https://wa.me/94740844739?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+  }
+
   modalBackdrop.classList.add('active');
-  showToast('Your reservation has been recorded! We look forward to pampering you. 🌸', 'fa-check-circle');
+  if (emailSent) {
+    showToast('Reservation confirmed! Details sent to salonvellora26@gmail.com 🌸', 'fa-envelope-open-text');
+  } else {
+    showToast('Reservation recorded! We look forward to welcoming you. 🌸', 'fa-check-circle');
+  }
 }
 
 /* --------------------------------------------------------------------------
